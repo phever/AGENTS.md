@@ -11,7 +11,7 @@ curl -o ~/.gemini/GEMINI.md -L "https://github.com/phever/AGENTS.md/raw/refs/hea
 
 #### Claude Code
 ```bash
-curl -o ~/.claude/CLAUDE.md -L "https://github.com/phever/AGENTS.md/raw/refs/heads/master/AGENTS.md" && sed -i 's/AGENTS/CLAUDE/g' ~/.claude
+curl -o ~/.claude/CLAUDE.md -L "https://github.com/phever/AGENTS.md/raw/refs/heads/master/AGENTS.md" && sed -i 's/AGENTS/CLAUDE/g' ~/.claude/CLAUDE.md
 ```
 
 Thank you Karpathy-sensei 🙏
