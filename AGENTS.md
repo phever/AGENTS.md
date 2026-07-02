@@ -1,8 +1,18 @@
 # AGENTS.md
 
-This file exists because LLMs make predictable mistakes when writing code. Not random mistakes. The same ones, over and over. I've watched it happen enough times to write them down.
+### Abstract
 
-These are not suggestions. These are rules. Follow them and you'll produce code that doesn't need to be rewritten. Ignore them and you'll produce code that looks impressive and breaks in production.
+This file exists because LLMs make predictable mistakes when writing code. Not random mistakes, just the same ones, over and over, often enough that it was worth writing them down.
+
+What follows is not a set of suggestions but a set of rules. 
+
+The throughline is the same in every section: the model is fast at generating plausible code and slow to notice that plausible is not the same as correct, so the discipline has to come from the process around it.
+
+### Index Terms
+
+LLM-assisted programming, code review, software craftsmanship, minimal diffs, debugging, dependency hygiene.
+
+---
 
 ## 1. Read Before You Write
 
@@ -10,31 +20,23 @@ The single biggest source of bad LLM code is not reading the existing codebase b
 
 Before writing anything:
 
-- Read the files you're about to modify. Not skim. Read.
+- Read the files you're about to touch; read, not skim.
 
-- Look at how similar things are done elsewhere in the project. If there's a pattern for API routes, follow that pattern. If there's a utility function check where it's used elsewhere, use it.
+- Copy the pattens that already exist
 
-- Check the imports at the top of the file. They tell you what libraries this project actually uses. Don't introduce axios if the project uses fetch everywhere. Don't introduce lodash if the project uses native methods.
+- Check the imports to see what the project actually depends on, so you do not reach for axios where everything is fetch.
 
-- Look at the test files. They tell you what the expected behavior actually is, not what you think it should be.
-
-The failure mode here is obvious: you generate "correct" code that's completely alien to the codebase it lives in. It works but looks like a different person wrote it (because a different entity did). The human then has to either rewrite it to match the project style or live with inconsistent forever. Both are bad.
-
-If you're not sure how something is done in this project, say so. "I don't see a pattern for X in the codebase, should I follow the approach in Y or do something different?" It's always better than guessing.
+- When you cannot find a pattern, ask instead of guessing.
 
 ---
 
 ## 2. Think Before You Code
 
-Don't start writing code until you've figured out what you're actually doing. This sounds obvious but it's the most common failure mode.
+Figure out what you are doing before you type.
 
-What this looks like in practice:
+- **State your assumptions.** If the user says "add authentication" that could mean session cookies, JWTs, OAuth, basic auth, or five other things. Don't pick one silently. Clearly state what assumptions you are making.
 
-- **State your assumptions.** If the user says "add authentication" that could mean session cookies, JWTs, OAuth, basic auth, or five other things. Don't pick one silently. Say "I'm assuming you want JWT-based auth with refresh tokens, stored in httpOnly cookies. If you want something different, let me know." If you're wrong, you've lost 10 seconds. If you silently guess wrong, you're out an hour.
-
-- **Name the tradeoffs.** Almost every implementation choice has a tradeoff. If you're adding caching, say "this trades memory for speed and introduces cache invalidation as a thing we now have to think about." The user might say "actually I don't want that complexity." Better to know before you write 200 lines.
-
-- **If multiple approaches exist, present them briefly.** Not five. Two, maybe three. With a recommendation. "There are two ways to do this. Option A is simpler but doesn't handle edge case X. Option B handles everything but adds a dependency on C. I'd go with A unless you expect X to actually happen."
+- **Name the tradeoffs.** Almost every implementation choice has a tradeoff. Name the tradeoffs when presenting assumptions.
 
 - **If something is confusing, stop.** Don't fill confusion with plausible-sounding code. The result of generating code when you don't understand the requirements is code that passes a casual review but fails when it matters. Just say what's confusing and ask.
 
@@ -173,7 +175,7 @@ Before adding a package:
 
 - How big is it? If you're adding a 50MB package to format a date, that's probably not worth it.
 
-When you do add a dependency, say why. "I'm adding zod because this project needs runtime schema validation and there's nothing in the existing dependencies that does this fine. Silently adding packages to package.json is not."
+When you do add a dependency, say why. "I'm adding zod because this project needs runtime schema validation and there's nothing in the existing dependencies that does this fine." Silently adding packages to package.json is not.
 
 ---
 
@@ -195,11 +197,11 @@ How you communicate about code matters as much as the code itself.
 
 ## 10. Common Failure Modes
 
-These are the patterns I see most often. If you catch yourself doing any of these, stop and reconsider.
+These are the patterns seen most often. If you catch yourself doing any of these, stop and reconsider.
 
 1. **The Kitchen Sink.** Asked to add one feature, you restructure half the codebase "while you're at it." Don't. Do the one thing.
 
-2. **The Wrong Abstraction.** You build a beautiful generic solution to a problem that only exists in one place. Duplication is far cheaper than the wrong abstraction. Copy-paste twice before you abstract.
+2. **The Wrong Abstraction.** You build a beautiful generic solution to a problem that only exists in one place. Duplication is far cheaper than the wrong abstraction. **Don't repeat yourself** (keep code DRY), but also don't write unnecessary abstractions for one-shots.
 
 3. **The Invisible Decision.** You make an architectural choice (database schema, API shape, auth strategy) without flagging it as a decision. These choices are hard to reverse and the user should be aware you made them.
 
